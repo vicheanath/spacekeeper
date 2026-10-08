@@ -140,6 +140,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/desktop
+          # tauri-action guesses pnpm from the stray pnpm-lock.yaml; we install
+          # with npm, so point it at the npm-installed CLI.
+          tauriScript: npx tauri
           releaseId: ${{ needs.create-release.outputs.release-id }}
           args: --target ${{ matrix.platform.target }} ${{ matrix.platform.args }}
 
