@@ -1,0 +1,28 @@
+[package]
+name = "spacekeeper-scanners"
+description = "Built-in scanners for SpaceKeeper"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+spacekeeper-core = { workspace = true }
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+blake3 = { workspace = true, features = ["mmap"] }
+rayon = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+walkdir = { workspace = true }
+time = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

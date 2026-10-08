@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Permissions for the SpaceKeeper main window. SpaceKeeper needs no plugin permissions: everything it does goes through its own commands, which validate paths in Rust.","local":true,"windows":["main"],"permissions":["core:default"]}}

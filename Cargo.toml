@@ -1,0 +1,57 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/spacekeeper-core",
+    "crates/spacekeeper-scanners",
+    "apps/desktop/src-tauri",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/spacekeeper/spacekeeper"
+authors = ["The SpaceKeeper contributors"]
+
+[workspace.dependencies]
+spacekeeper-core = { path = "crates/spacekeeper-core", version = "0.1.0" }
+spacekeeper-scanners = { path = "crates/spacekeeper-scanners", version = "0.1.0" }
+
+anyhow = "1.0"
+async-trait = "0.1"
+blake3 = "1.8"
+dirs = "6.0"
+ignore = "0.4"
+num_cpus = "1.17"
+rayon = "1.12"
+rusqlite = { version = "0.37", features = ["bundled"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sysinfo = "0.38"
+tempfile = "3"
+thiserror = "2.0"
+time = { version = "0.3", features = ["serde", "serde-well-known", "formatting", "parsing", "macros"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "fs", "process"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+trash = "5.2"
+uuid = { version = "1", features = ["v4", "serde"] }
+walkdir = "2.5"
+
+[workspace.lints.rust]
+# SpaceKeeper deletes user data; there is no reason for it to contain `unsafe`.
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+
+# Scanning is I/O and hash bound; keep dependencies optimised in dev builds too.
+[profile.dev.package."*"]
+opt-level = 2

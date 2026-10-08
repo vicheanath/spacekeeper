@@ -1,0 +1,211 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+/**
+ * SpaceKeeper theme.
+ *
+ * Built on the shadcn/Base UI token set, with three additions of our own:
+ * `--safe`, `--warn` and `--risky`. Those three hues appear *nowhere else* in
+ * the app, so a colour on this screen always means one thing — green is always
+ * "recreated automatically, delete freely". Every badge also carries a text
+ * label, so the meaning survives colour blindness and forced-colors mode.
+ *
+ * Contrast: each foreground/background pair below clears WCAG AA (4.5:1) in
+ * both themes; the muted-on-surface pair is the tightest and was chosen
+ * against that bound.
+ */
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+
+  /* Risk palette — the only semantic colours in the app. */
+  --color-safe: var(--safe);
+  --color-safe-foreground: var(--safe-foreground);
+  --color-warn: var(--warn);
+  --color-warn-foreground: var(--warn-foreground);
+  --color-risky: var(--risky);
+  --color-risky-foreground: var(--risky-foreground);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: oklch(0.985 0.002 265);
+  --foreground: oklch(0.21 0.02 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.02 265);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.02 265);
+
+  /* Indigo, matching the app icon. */
+  --primary: oklch(0.54 0.2 265);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.962 0.004 265);
+  --secondary-foreground: oklch(0.24 0.02 265);
+  --muted: oklch(0.962 0.004 265);
+  --muted-foreground: oklch(0.48 0.015 265);
+  --accent: oklch(0.945 0.012 265);
+  --accent-foreground: oklch(0.28 0.03 265);
+  --destructive: oklch(0.53 0.2 25);
+
+  --safe: oklch(0.5 0.13 155);
+  --safe-foreground: oklch(1 0 0);
+  --warn: oklch(0.53 0.13 65);
+  --warn-foreground: oklch(1 0 0);
+  --risky: oklch(0.53 0.2 25);
+  --risky-foreground: oklch(1 0 0);
+
+  --border: oklch(0.9 0.006 265);
+  --input: oklch(0.9 0.006 265);
+  --ring: oklch(0.54 0.2 265);
+
+  --chart-1: oklch(0.54 0.2 265);
+  --chart-2: oklch(0.62 0.16 210);
+  --chart-3: oklch(0.62 0.15 155);
+  --chart-4: oklch(0.66 0.15 65);
+  --chart-5: oklch(0.6 0.19 25);
+
+  --radius: 0.625rem;
+
+  --sidebar: oklch(0.975 0.003 265);
+  --sidebar-foreground: oklch(0.21 0.02 265);
+  --sidebar-primary: oklch(0.54 0.2 265);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.945 0.012 265);
+  --sidebar-accent-foreground: oklch(0.28 0.03 265);
+  --sidebar-border: oklch(0.9 0.006 265);
+  --sidebar-ring: oklch(0.54 0.2 265);
+}
+
+.dark {
+  --background: oklch(0.17 0.012 265);
+  --foreground: oklch(0.96 0.004 265);
+  --card: oklch(0.21 0.014 265);
+  --card-foreground: oklch(0.96 0.004 265);
+  --popover: oklch(0.23 0.015 265);
+  --popover-foreground: oklch(0.96 0.004 265);
+
+  --primary: oklch(0.7 0.15 265);
+  --primary-foreground: oklch(0.18 0.02 265);
+  --secondary: oklch(0.27 0.016 265);
+  --secondary-foreground: oklch(0.96 0.004 265);
+  --muted: oklch(0.27 0.016 265);
+  --muted-foreground: oklch(0.73 0.012 265);
+  --accent: oklch(0.3 0.02 265);
+  --accent-foreground: oklch(0.96 0.004 265);
+  --destructive: oklch(0.7 0.17 25);
+
+  --safe: oklch(0.76 0.15 155);
+  --safe-foreground: oklch(0.18 0.02 155);
+  --warn: oklch(0.8 0.14 75);
+  --warn-foreground: oklch(0.2 0.03 75);
+  --risky: oklch(0.7 0.17 25);
+  --risky-foreground: oklch(0.18 0.02 25);
+
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.7 0.15 265);
+
+  --chart-1: oklch(0.7 0.15 265);
+  --chart-2: oklch(0.72 0.14 210);
+  --chart-3: oklch(0.76 0.15 155);
+  --chart-4: oklch(0.8 0.14 75);
+  --chart-5: oklch(0.7 0.17 25);
+
+  --sidebar: oklch(0.19 0.013 265);
+  --sidebar-foreground: oklch(0.96 0.004 265);
+  --sidebar-primary: oklch(0.7 0.15 265);
+  --sidebar-primary-foreground: oklch(0.18 0.02 265);
+  --sidebar-accent: oklch(0.3 0.02 265);
+  --sidebar-accent-foreground: oklch(0.96 0.004 265);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.7 0.15 265);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    color-scheme: light dark;
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    /* The window is the frame; panes scroll, the document does not. */
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Paths are the one thing users legitimately want to copy out. */
+  .selectable {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Honour the OS "reduce motion" setting, including Base UI transitions. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Windows High Contrast: hand the palette back to the OS. */
+  @media (forced-colors: active) {
+    * {
+      forced-color-adjust: auto;
+    }
+  }
+}
