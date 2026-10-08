@@ -63,6 +63,19 @@ otherwise change will be asked to drop the noise.
 Present tense, describing the change: "Refuse symlinks in the cleanup engine",
 not "fixed stuff". Reference an issue when there is one.
 
+## Releasing
+
+1. Bump the version in `Cargo.toml` (`[workspace.package]`),
+   `apps/desktop/src-tauri/tauri.conf.json` and `apps/desktop/package.json`.
+   They must all match.
+2. Commit, then tag and push: `git tag v0.2.0 && git push origin v0.2.0`.
+
+The Release workflow builds macOS (Apple Silicon and Intel), Linux (x64 and
+ARM64) and Windows (x64 and ARM64), attaches the installers to a GitHub release
+and publishes it once every build succeeds. A tag with a suffix such as
+`v0.2.0-beta.1` is published as a pre-release. To check that everything builds
+without releasing, run the workflow by hand from the Actions tab.
+
 ## Reporting bugs
 
 For anything involving deleted data, include the scanner id, the path, and what

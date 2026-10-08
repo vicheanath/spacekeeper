@@ -1,13 +1,77 @@
 name: Release
 
+# Pushing a `v*` tag builds SpaceKeeper for every platform, attaches the
+# installers to a GitHub release and publishes it once every build succeeds.
+#
+# Running the workflow by hand is a dry run: it builds every platform and
+# uploads the installers as workflow artifacts, without touching releases.
+
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+# Never cancel a release half-way through uploading assets.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
+  create-release:
+    name: Create draft release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    outputs:
+      release-id: ${{ steps.create.outputs.release-id }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The installers are named after the version in tauri.conf.json, so a
+      # tag that disagrees with it would publish mislabelled builds.
+      - name: Check tag matches app version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          cargo=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)
+          tauri=$(jq -r .version apps/desktop/src-tauri/tauri.conf.json)
+          npm=$(jq -r .version apps/desktop/package.json)
+          echo "tag=$tag Cargo.toml=$cargo tauri.conf.json=$tauri package.json=$npm"
+          if [ "$tag" != "$cargo" ] || [ "$tag" != "$tauri" ] || [ "$tag" != "$npm" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match the version in Cargo.toml, tauri.conf.json and package.json"
+            exit 1
+          fi
+
+      - name: Create draft release
+        id: create
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Tags like v1.2.0-beta.1 are pre-releases.
+          prerelease=false
+          case "$GITHUB_REF_NAME" in *-*) prerelease=true ;; esac
+
+          id=$(gh api "repos/$GITHUB_REPOSITORY/releases" \
+            -f tag_name="$GITHUB_REF_NAME" \
+            -f name="SpaceKeeper $GITHUB_REF_NAME" \
+            -F draft=true \
+            -F prerelease=$prerelease \
+            -F generate_release_notes=true \
+            -f body="Builds are unsigned. On macOS, right-click the app and choose **Open** on first launch; on Windows, choose **More info → Run anyway** in SmartScreen. Signing is on the roadmap." \
+            --jq .id)
+          echo "release-id=$id" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build (${{ matrix.platform.name }})
+    needs: create-release
+    # Run for tags once the release exists, and on manual dry runs where
+    # create-release is skipped.
+    if: ${{ !cancelled() && needs.create-release.result != 'failure' }}
     runs-on: ${{ matrix.platform.os }}
     strategy:
       fail-fast: false
@@ -15,20 +79,29 @@ jobs:
         platform:
           - name: macOS (Apple Silicon)
             os: macos-latest
-            args: --target aarch64-apple-darwin
             target: aarch64-apple-darwin
+            args: ""
           - name: macOS (Intel)
             os: macos-latest
-            args: --target x86_64-apple-darwin
             target: x86_64-apple-darwin
-          - name: Linux
+            args: ""
+          - name: Linux (x64)
             os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
             args: ""
-            target: ""
-          - name: Windows
+          - name: Linux (ARM64)
+            os: ubuntu-22.04-arm
+            target: aarch64-unknown-linux-gnu
+            args: ""
+          - name: Windows (x64)
             os: windows-latest
+            target: x86_64-pc-windows-msvc
             args: ""
-            target: ""
+          # WiX cannot produce ARM64 MSIs, so ship the NSIS installer only.
+          - name: Windows (ARM64)
+            os: windows-latest
+            target: aarch64-pc-windows-msvc
+            args: --bundles nsis
 
     steps:
       - uses: actions/checkout@v4
@@ -44,9 +117,12 @@ jobs:
           targets: ${{ matrix.platform.target }}
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          # Both macOS builds share a runner image; keep their caches apart.
+          key: ${{ matrix.platform.target }}
 
       - name: Install Linux dependencies
-        if: matrix.platform.os == 'ubuntu-22.04'
+        if: startsWith(matrix.platform.os, 'ubuntu')
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev \
@@ -56,18 +132,36 @@ jobs:
         run: npm ci
         working-directory: apps/desktop
 
+      # With a release id the installers are uploaded to that release; without
+      # one (manual dry run) tauri-action only builds.
       - uses: tauri-apps/tauri-action@v0
+        id: tauri
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/desktop
-          tagName: ${{ github.ref_name }}
-          releaseName: SpaceKeeper ${{ github.ref_name }}
-          releaseBody: |
-            See the changelog for what changed.
+          releaseId: ${{ needs.create-release.outputs.release-id }}
+          args: --target ${{ matrix.platform.target }} ${{ matrix.platform.args }}
 
-            Builds are unsigned. macOS will need a right-click → Open on first
-            launch; signing is on the roadmap.
-          releaseDraft: true
-          prerelease: false
-          args: ${{ matrix.platform.args }}
+      - name: Upload dry-run artifacts
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: spacekeeper-${{ matrix.platform.target }}
+          # The workspace target dir sits at the repo root, not under src-tauri.
+          path: target/${{ matrix.platform.target }}/release/bundle/
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish release
+    needs: [create-release, build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X PATCH \
+            "repos/$GITHUB_REPOSITORY/releases/${{ needs.create-release.outputs.release-id }}" \
+            -F draft=false
